@@ -1,45 +1,26 @@
-/* Blink without Delay
- 
- Turns on and off a light emitting diode(LED) connected to a digital  
- pin, without using the delay() function.  This means that other code
- can run at the same time without being interrupted by the LED code.
- 
- The circuit:
- * LED attached from pin 13 to ground.
- * Note: on most Arduinos, there is already an LED on the board
- that's attached to pin 13, so no hardware is needed for this example.
- 
- 
- created 2005
- by David A. Mellis
- modified 8 Feb 2010
- by Paul Stoffregen
- 
- This example code is in the public domain.
-
- 
- http://www.arduino.cc/en/Tutorial/BlinkWithoutDelay
- */
-
 // constants won't change. Used here to 
 // set pin numbers:
 const int ledPin =  2;      // the number of the LED pin
+const long LOWEST_BPM = 30L;
+const long HIGHEST_BPM = 220L;
+const long LOWEST_BPM_INTERVAL = (60L * 1000 / (2 * LOWEST_BPM) );
+const long HIGHEST_BPM_INTERVAL = (60L * 1000 / (2 * HIGHEST_BPM) );
+const long MAX_ANALOG_READ = 1024L;
+
+const int portPin = 0;
 
 // Variables will change:
 int ledState = LOW;             // ledState used to set the LED
 long previousMillis = 0;        // will store last time LED was updated
-
-// the follow variables is a long because the time, measured in miliseconds,
-// will quickly become a bigger number than can be stored in an int.
-long interval = 10;           // interval at which to blink (milliseconds)
+int analogVal = 0;
+long bpm_interval = 0;
 
 void setup() {
   // set the digital pin as output:
   pinMode(ledPin, OUTPUT);      
-}
 
-const long BPM = 120L;
-const long LOWEST_BPM_INTERVAL = (60L * 1000 / (2 * BPM) );
+  Serial.begin(9600);
+}
 
 void loop()
 {
@@ -50,10 +31,16 @@ void loop()
   // the LED is bigger than the interval at which you want to 
   // blink the LED.
   unsigned long currentMillis = millis();
+
+  analogVal = analogRead(portPin);
+  bpm_interval = LOWEST_BPM_INTERVAL + (HIGHEST_BPM_INTERVAL - LOWEST_BPM_INTERVAL) * analogVal / MAX_ANALOG_READ;
  
-  if(currentMillis - previousMillis > LOWEST_BPM_INTERVAL) {
+  if(currentMillis - previousMillis > bpm_interval) {
     // save the last time you blinked the LED 
     previousMillis = currentMillis;   
+
+    Serial.print(analogVal);
+    Serial.print("\n");
 
     // if the LED is off turn it on and vice-versa:
     if (ledState == LOW)
